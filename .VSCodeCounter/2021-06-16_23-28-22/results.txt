@@ -1,0 +1,53 @@
+Date : 2021-06-16 23:28:22
+Directory : s:\Things\CFD\CFD
+Total : 22 files,  41804 codes, 579 comments, 793 blanks, all 43176 lines
+
+Languages
++----------------------+------------+------------+------------+------------+------------+
+| language             | files      | code       | comment    | blank      | total      |
++----------------------+------------+------------+------------+------------+------------+
+| PDF                  |          4 |     38,126 |          0 |        250 |     38,376 |
+| Wolfram Language     |          2 |      2,291 |        360 |        207 |      2,858 |
+| Julia                |          9 |        913 |         37 |        229 |      1,179 |
+| Fortran90            |          5 |        382 |        139 |        105 |        626 |
+| MATLAB               |          1 |         58 |         43 |          1 |        102 |
+| source.markdown.math |          1 |         34 |          0 |          1 |         35 |
++----------------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                      | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                         |         22 |     41,804 |        579 |        793 |     43,176 |
+| Project_Files                                             |         11 |     40,842 |        526 |        558 |     41,926 |
+| Project_Files\Grids                                       |          1 |         58 |         43 |          1 |        102 |
++-----------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------+----------------------+------------+------------+------------+------------+
+| filename                                                  | language             | code       | comment    | blank      | total      |
++-----------------------------------------------------------+----------------------+------------+------------+------------+------------+
+| s:\Things\CFD\CFD\BC.jl                                   | Julia                |         93 |          0 |         32 |        125 |
+| s:\Things\CFD\CFD\MMS_func.jl                             | Julia                |        167 |          3 |         20 |        190 |
+| s:\Things\CFD\CFD\Project_Files\CFD.project.v1.pdf        | PDF                  |        330 |          0 |         25 |        355 |
+| s:\Things\CFD\CFD\Project_Files\Grid-In_Solution-Out.f95  | Fortran90            |         34 |         17 |          8 |         59 |
+| s:\Things\CFD\CFD\Project_Files\Grids\grdread2.m          | MATLAB               |         58 |         43 |          1 |        102 |
+| s:\Things\CFD\CFD\Project_Files\MMS_functions_2D.f95      | Fortran90            |        261 |         14 |         62 |        337 |
+| s:\Things\CFD\CFD\Project_Files\Paper_Template_Aug10.pdf  | PDF                  |        870 |          0 |         47 |        917 |
+| s:\Things\CFD\CFD\Project_Files\aiaa2002-3110.pdf         | PDF                  |     32,248 |          0 |        142 |     32,390 |
+| s:\Things\CFD\CFD\Project_Files\article.mms.pdf           | PDF                  |      4,678 |          0 |         36 |      4,714 |
+| s:\Things\CFD\CFD\Project_Files\detailedExampleOutput.f90 | Fortran90            |         36 |         46 |         15 |         97 |
+| s:\Things\CFD\CFD\Project_Files\detailedExampleOutput.f95 | Fortran90            |         36 |         46 |         15 |         97 |
+| s:\Things\CFD\CFD\Project_Files\euler.2d.C.nb             | Wolfram Language     |      1,691 |        160 |        107 |      1,958 |
+| s:\Things\CFD\CFD\Project_Files\euler.2d.nb               | Wolfram Language     |        600 |        200 |        100 |        900 |
+| s:\Things\CFD\CFD\flux.jl                                 | Julia                |        130 |         10 |         50 |        190 |
+| s:\Things\CFD\CFD\fread.jl                                | Julia                |         13 |          0 |          4 |         17 |
+| s:\Things\CFD\CFD\functions.jl                            | Julia                |        226 |          8 |         61 |        295 |
+| s:\Things\CFD\CFD\initialize.jl                           | Julia                |         42 |          1 |          8 |         51 |
+| s:\Things\CFD\CFD\map.md                                  | source.markdown.math |         34 |          0 |          1 |         35 |
+| s:\Things\CFD\CFD\muscl.jl                                | Julia                |        118 |          6 |         31 |        155 |
+| s:\Things\CFD\CFD\read.jl                                 | Julia                |         47 |          0 |         11 |         58 |
+| s:\Things\CFD\CFD\read_grid.jl                            | Julia                |         77 |          9 |         12 |         98 |
+| s:\Things\CFD\CFD\readin.f95                              | Fortran90            |         15 |         16 |          5 |         36 |
+| Total                                                     |                      |     41,804 |        579 |        793 |     43,176 |
++-----------------------------------------------------------+----------------------+------------+------------+------------+------------+
