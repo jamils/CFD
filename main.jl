@@ -8,8 +8,17 @@ const nmax = 1e6;
 const RK_order = 4;
 const R = 287.0;
 const γ = 1.4;
-const localdt = 0;
 
+const localdt = 0;
+const case = 1;
+const supersonic = 0;
+const limiter = 0;
+const upwind = 1;
+const κ = 0.25;
+const ε = 0.5;
+
+const imaxg = imax + 2*num_ghost;
+const jmaxg = jmax + 2*num_ghost;
 
 x, y = readGrid(imax, jmax); # !!!!! HEAVY MODIFY
 xc, yc = cellCenteredGrid(x, y);
@@ -18,6 +27,9 @@ xc_g, yc_g = extrapCopyCoords(xc, yc);
 
 # Initialize the domain
 # Set geometry
+
+xn = x;
+yn = y;
 
 Ai, Aj = computeArea(xn, yn);
 

@@ -30,7 +30,7 @@ end
 function computeArea(xn, yn)
     Ai = zeros(jmax, imax);
     for i ∈ 1:imax
-        for j ∈ 1:jmax
+        for j ∈ 1:(jmax-1)
             dx = xn[j,i] - xn[j+1,i];
             dy = yn[j,i] - yn[j+1,i];
             Ai[j,i] = √(dx^2 * dy^2);
@@ -38,7 +38,7 @@ function computeArea(xn, yn)
     end
 
     Aj = zeros(jmax, imax);
-    for i ∈ 1:imax
+    for i ∈ 1:(imax-1)
         for j ∈ 1:jmax
             dx = xn[j,i] - xn[j,i+1];
             dy = yn[j,i] - yn[j,i+1];
@@ -53,7 +53,7 @@ function computeNormalVectors(xn, yn, Ai, Aj)
     ni_xhat = zeros(jmax, imax);
     ni_yhat = zeros(jmax, imax);
     for i ∈ 1:imax
-        for j ∈ 1:jmax
+        for j ∈ 1:(jmax-1)
             ni_xhat[j,i] =  (yn[j+1,i] - yn[j,i]) / Ai[j,i];
             ni_yhat[j,i] = -(xn[j+1,i] - xn[j,i]) / Ai[j,i];
         end
@@ -61,7 +61,7 @@ function computeNormalVectors(xn, yn, Ai, Aj)
 
     nj_xhat = zeros(jmax, imax);
     nj_yhat = zeros(jmax, imax);
-    for i ∈ 1:imax
+    for i ∈ 1:(imax-1)
         for j ∈ 1:jmax
             nj_xhat[j,i] = -(yn[j,i+1] - yn[j,i]) / Aj[j,i];
             nj_yhat[j,i] =  (xn[j,i+1] - xn[j,i]) / Aj[j,i];
@@ -73,8 +73,8 @@ end
 
 function computeVolume(xn, yn)
     Volume = zeros(jmax, imax);
-    for i ∈ 1:imax
-        for j ∈ 1:jmax
+    for i ∈ 1:(imax-1)
+        for j ∈ 1:(jmax-1)
             dx1 = xn[j,i] - xn[j+1,i+1]; # Bottom left to top right
             dy1 = yn[j,i] - yn[j+1,i+1];
             dx2 = xn[j+1,i] - xn[j,i+1]; # Top left to bottom right
@@ -99,9 +99,9 @@ function extrapCopyCoords(xc, yc)
         end
     end
 
-    bot = num_ghost - 1;
+    bot = num_ghost + 1; # num_ghost - 1;
     top = num_ghost + jmax;
-    left = num_ghost - 1;
+    left = num_ghost + 1; # num_ghost - 1;
     right = num_ghost + imax;
 
     # Extrapolate to ghost cells
@@ -157,7 +157,7 @@ function computeTemperature(V)
 end
 
 function prim2cons(V)
-    U = zeros(jmax, imax, 4);
+    U = zeros(jmaxg, imaxg, 4);
 
     ρ = V[:,:,1];
     u = V[:,:,2];
@@ -165,9 +165,9 @@ function prim2cons(V)
     p = V[:,:,4];
 
     @. ρ = ρ;
-    @. ρu = ρ * u;
-    @. ρv = ρ * v;
-    @. ρeₜ = p / (γ-1) + 0.5 * ρ * u^2 + 0.5 * v^2;
+    ρu = @. ρ * u;
+    ρv = @. ρ * v;
+    ρeₜ = @. p / (γ-1) + 0.5 * ρ * u^2 + 0.5 * v^2;
 
     U[:,:,1] = ρ;
     U[:,:,2] = ρu;
@@ -178,7 +178,7 @@ function prim2cons(V)
 end
 
 function cons2prim(U)
-    V = zeros(jmax, imax, 4);
+    V = zeros(jmaxg, imaxg, 4);
 
     ρ = U[:,:,1];
     ρu = U[:,:,2];
@@ -283,7 +283,7 @@ end
 
 function RungeKutta(U, Res, Volume, dt, dt_min)
     α = zeros(4);
-    U_RK = zeros(jmax, imax, 4);
+    U_RK = zeros(jmaxg, imaxg, 4);
 
     if RK_order == 1
         α[1] = 1;

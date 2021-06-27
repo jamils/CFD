@@ -22,6 +22,9 @@ function computeFluxVL(nx, ny, VL, VR)
             aL = √(γ*VL[j,i,4] / VL[j,i,1]);
             aR = √(γ*VR[j,i,4] / VR[j,i,1]);
 
+            println("aL = $aL")
+            println("aR = $aR")
+
             # Velocity
             uL = VL[j,i,2] * nx[j,i] + VL[j,i,3] * ny[j,i];
             uR = VR[j,i,2] * nx[j,i] + VR[j,i,3] * ny[j,i];
@@ -30,14 +33,17 @@ function computeFluxVL(nx, ny, VL, VR)
             ML = uL / aL;
             MR = uR / aR;
 
+            println("nx[$j,$i] = $(nx[j,i])")
+            println("ny[$j,$i] = $(ny[j,i])")
+
             M⁺ = 0.25 * (ML + 1)^2;
             M⁻ = 0.25 * (MR - 1)^2;
 
             βL = - max(0, 1 - Int64(round(abs(ML))));
             βR = - max(0, 1 - Int64(round(abs(MR))));
 
-            α⁺ = 0.5 * (1 + sign(1, ML));
-            α⁻ = 0.5 * (1 - sign(1, MR));
+            α⁺ = 0.5 * (1 + copysign(1, ML));
+            α⁻ = 0.5 * (1 - copysign(1, MR));
 
             c⁺ = α⁺ * (1 + βL) * ML - βL * M⁺;
             c⁻ = α⁻ * (1 + βR) * MR - βR * M⁻;
