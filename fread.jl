@@ -13,13 +13,18 @@ function fread(dims)
     # global imax = 53; # Columns
     # global jmax = 17; # Rows
 
-    x = zeros(jmax, imax);
-    y = zeros(jmax, imax);
+    x = @. zeros(jmax, imax) + 1e-6;
+    y = @. zeros(jmax, imax) + 1e-6;
 
-    for i ∈ imax
-        for j ∈ jmax
-            x[j,i] = parse(Float64, readline("x.txt"));
-            y[j,i] = parse(Float64, readline("y.txt"));
+    counter = 1;
+
+    for i ∈ 1:imax
+        for j ∈ 1:jmax
+            x[j,i] = xin[counter];
+            y[j,i] = yin[counter];
+            # x[j,i] = parse(Float64, readline("x.txt"));
+            # y[j,i] = parse(Float64, readline("y.txt"));
+            counter = counter + 1;
         end
     end
 

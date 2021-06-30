@@ -1,9 +1,92 @@
+function setupDomain()
+    x, y = readGrid(imax, jmax); # !!!!! HEAVY MODIFY
+    xc, yc = cellCenteredGrid(x, y);
+
+    xc_g, yc_g = extrapCopyCoords(xc, yc);
+
+    # Initialize the domain
+    # Set geometry
+
+    xn = x;
+    yn = y;
+
+    Ai, Aj = computeArea(xn, yn);
+
+    Ai = @. Ai + 1e-8;
+    Aj = @. Aj + 1e-8;
+
+    ni_x, ni_y, nj_x, nj_y = computeNormalVectors(xn, yn, Ai, Aj);
+
+    Volume = computeVolume(xn, yn);
+
+    values = 
+        [x, y, xc, yc, xc_g, yc_g, 
+        xn, yn, Ai, Aj, ni_x, ni_y, 
+        nj_x, nj_y, Volume];
+
+    return values
+end
+
+function firstTimeStep(dt_min)
+    # Set primitive variables
+
+    println("Initialize")
+
+    V = initialize(xc_g, yc_g);
+
+    T = computeTemperature(V);
+
+    if case == 1 # MMS Curvilinear mesh
+        S = solveSourceMMS(xc, yc);
+        V_MMS = solveSolutionMMS(xc_g, yc_g);
+        V = setBCMMS(V_MMS);
+
+        # !!!!!!!! Output to DB
+
+    else
+        S = zeros(jmax, imax);
+        V = setBC(ni_x, ni_y, nj_x, nj_y, T);
+    end
+
+    U = prim2cons(V);
+    
+    VL, VR, VB, VT = MUSCL(V);
+
+    F, G = compute2DFlux(ni_x, ni_y, nj_x, nj_y, VL, VR, VB, VT);
+
+    Res = computeRes(F, G, S, Ai, Aj, Volume); # Residuals
+
+    MaxSpeed = computeMaxSpeed(V);
+
+    dt, dt_min = computeTimeStep(
+        Volume, Ai, Aj, ni_x, ni_y, nj_x,nj_y, MaxSpeed, dt_min, V);
+    
+    U_RK = RungeKutta(U, Res, Volume, dt, dt_min);
+    V = cons2prim(U_RK);
+    U = U_RK;
+
+    L2 = computeL2(Res);
+
+    if case == 1 # Compute error for MMS case
+        Error = computeError(V, V_MMS);
+        Inter = computeL2(Error);
+    end
+
+    init_vals = [V, T, S, U, U_RK, VL, VR, VB, VT, 
+    F, G, Res, MaxSpeed, dt, dt_min, L2, Error, Inter];
+
+    return init_vals
+end
+
 function readGrid(imax, jmax)
     file = "griddata.h5";
     grouping = "$imax x $jmax";
 
     x = h5read(file, grouping*"/x");
     y = h5read(file, grouping*"/y");
+
+    x = @. x + 1e-6;
+    y = @. y + 1e-6;
 
     return x, y
 end
@@ -18,17 +101,25 @@ function cellCenteredGrid(x, y)
         for i ∈ 1:(imax-1)
             xc[j,i] = 0.25 * (x[j,i] + x[j+1,i] + x[j,i+1] + x[j+1,i+1]);
             yc[j,i] = 0.25 * (y[j,i] + y[j+1,i] + y[j,i+1] + y[j+1,i+1]);
+            if xc[j,i] == 0
+                error("xc at $j, $i")
+            elseif yc[j,i] == 0
+                error("yc at $j, $i")
+            end
         end
     end
 
-    xc[end,end] = 0;
-    yc[end,end] = 0;
+    xc[end,:] = xc[end-1,:];
+    xc[:,end] = xc[:,end-1];
+
+    yc[end,:] = yc[end-1,:];
+    yc[:,end] = yc[:,end-1];
 
     return xc, yc
 end
 
 function computeArea(xn, yn)
-    Ai = zeros(jmax, imax);
+    Ai = ones(jmax, imax);
     for i ∈ 1:imax
         for j ∈ 1:(jmax-1)
             dx = xn[j,i] - xn[j+1,i];
@@ -36,6 +127,8 @@ function computeArea(xn, yn)
             Ai[j,i] = √(dx^2 * dy^2);
         end
     end
+
+    Ai[end,:] = Ai[end-1,:];
 
     Aj = zeros(jmax, imax);
     for i ∈ 1:(imax-1)
@@ -45,6 +138,8 @@ function computeArea(xn, yn)
             Aj[j,i] = √(dx^2 * dy^2);
         end
     end
+
+    Aj[:,end] = Aj[:,end-1];
 
     return Ai, Aj
 end
@@ -83,6 +178,9 @@ function computeVolume(xn, yn)
             Volume[j,i] = 0.5 * abs(dx1*dy2 - dx2*dy1);
         end
     end
+
+    Volume[jmax,:] = @. Volume[jmax-1,:];
+    Volume[:,imax] = @. Volume[:,imax-1];
 
     return Volume
 end
@@ -145,13 +243,13 @@ end
 function computeTemperature(V)
     T = zeros(jmax, imax);
 
-    # for i ∈ 1:imax
-    #     for j ∈ 1:jmax
-    #         T[j,i] = V[j,i,4] / (R*V[j,i,1]);
-    #     end
-    # end
+    for i ∈ 1:imax
+        for j ∈ 1:jmax
+            T[j,i] = V[j,i,4] / (R*V[j,i,1]);
+        end
+    end
 
-    @. T = V[:,:,4] / (R*V[:,:,1]);
+    # @. T = V[:,:,4] / (R*V[:,:,1]);
 
     return T
 end
@@ -185,10 +283,10 @@ function cons2prim(U)
     ρv = U[:,:,3];
     ρeₜ = U[:,:,4];
 
-    @. ρ = ρ;
-    @. u = ρu / ρ;
-    @. v = ρv / ρ;
-    @. p = (γ-1) * (ρeₜ - 0.5 * ρ * u^2 - 0.5 * ρ * v^2); # !!!!!!!!
+    ρ = @. ρ;
+    u = @. ρu / ρ;
+    v = @. ρv / ρ;
+    p = @. (γ-1) * (ρeₜ - 0.5 * ρ * u^2 - 0.5 * ρ * v^2); # !!!!!!!!
 
     V[:,:,1] = ρ;
     V[:,:,2] = u;
@@ -201,12 +299,15 @@ end
 function computeRes(F, G, S, Ai, Aj, Volume)
     R = zeros(jmax, imax, 4);
     
-    for j ∈ 1:jmax
-        for i ∈ 1:imax
+    for j ∈ 1:(jmax-1)
+        for i ∈ 1:(imax-1)
             @. R[j,i,:] = F[j,i+1,:]*Ai[j,i+1] + G[j+1,i,:]*Aj[j+1,i] - 
                 F[j,i,:]*Ai[j,i] - G[j,i,:]*Aj[j,i] - S[j,i,:]*Volume[j,i];
         end
     end
+
+    R[end,:,:] = R[end-1,:,:];
+    R[:,end,:] = R[:,end-1,:];
 
     return R
 end
@@ -231,8 +332,8 @@ function computeTimeStep(Volume, Ai, Aj, ni_x, ni_y, nj_x, nj_y, MaxSpeed, dt_mi
 
     # dt_min = 1e10;
 
-    for j ∈ 1:jmax
-        for i ∈ 1:imax
+    for j ∈ 1:(jmax-1)
+        for i ∈ (1:imax-1)
             ic = i+num_ghost;
             jc = j+num_ghost;
 
@@ -255,6 +356,9 @@ function computeTimeStep(Volume, Ai, Aj, ni_x, ni_y, nj_x, nj_y, MaxSpeed, dt_mi
             end
         end
     end
+
+    dt[end,:] = dt[end-1,:];
+    dt[:,end] = dt[:,end-1];
 
     return dt, dt_min
 end
@@ -284,6 +388,7 @@ end
 function RungeKutta(U, Res, Volume, dt, dt_min)
     α = zeros(4);
     U_RK = zeros(jmaxg, imaxg, 4);
+    # U_RK = @. U_RK + 1e-8;
 
     if RK_order == 1
         α[1] = 1;
@@ -305,8 +410,8 @@ function RungeKutta(U, Res, Volume, dt, dt_min)
 
     end
 
-    for j ∈ jmax
-        for i ∈ imax
+    for j ∈ 1:jmax
+        for i ∈ 1:imax
             if localdt == 0
                 dt_val = dt_min;
             else
@@ -320,5 +425,29 @@ function RungeKutta(U, Res, Volume, dt, dt_min)
         end
     end
 
+    U_RK = extrap2Ghost(U_RK);
+
     return U_RK
+end
+
+function extrap2Ghost(ℵ)
+    for i ∈ 1:imaxg
+        for j ∈ 1:num_ghost
+            ℵ[j,i,:] = ℵ[num_ghost+1, i, :];
+        end
+        for j ∈ jmax:jmaxg
+            ℵ[j,i,:] = ℵ[jmax, i, :];
+        end
+    end
+
+    for j ∈ 1:jmaxg
+        for i ∈ 1:num_ghost
+            ℵ[j,i,:] = ℵ[j, num_ghost+1, :];
+        end
+        for i ∈ imax:imaxg
+            ℵ[j,i,:] = ℵ[j, imax, :];
+        end
+    end
+
+    return ℵ
 end

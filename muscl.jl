@@ -71,6 +71,19 @@ function computeUpwindVLR(V)
         end
     end
 
+    for i ∈ 1:num_ghost
+        Ψ⁺[:,i,:] = @. Ψ⁺[:,num_ghost+1,:];
+        Ψ⁻[:,i,:] = @. Ψ⁻[:,num_ghost+1,:];
+    end
+
+    for i ∈ imax+1:imaxg+1
+        Ψ⁺[:,i,:] = @. Ψ⁺[:,imax,:];
+        Ψ⁻[:,i,:] = @. Ψ⁻[:,imax,:];
+    end
+
+    Ψ⁺[end,:,:] = @. Ψ⁺[end-1,:,:];
+    Ψ⁻[end,:,:] = @. Ψ⁻[end-1,:,:];
+
     VL = zeros(jmaxg, imaxg, 4);
     VR = zeros(jmaxg, imaxg, 4);
 
@@ -126,13 +139,13 @@ function computeUpwindVBT(V)
     ni = ni_g - 2*num_ghost;
     nj = nj_g - 2*num_ghost;
 
-    Ψ⁺ = zeros(nj, ni_g+1, 4);
-    Ψ⁻ = zeros(nj, ni_g+1, 4);
+    Ψ⁺ = zeros(nj_g+1, ni, 4);
+    Ψ⁻ = zeros(nj_g+1, ni, 4);
 
     δ = 1e-6;
 
-    for i ∈ 1:ni
-        for j ∈ (num_ghost-1):(nj-1)
+    for i ∈ 1:(ni-1)
+        for j ∈ (num_ghost-1):(nj_g-2)
             i_cells = num_ghost + i;
             den = @. V[j+1,i_cells,:] - V[j,i_cells,:];
             for i ∈ 1:4
@@ -153,8 +166,8 @@ function computeUpwindVBT(V)
     VT = zeros(jmaxg, imaxg, 4);
 
     # Fill in left and right states
-    for i ∈ num_ghost:imax
-        for j ∈ num_ghost:(jmax-num_ghost)
+    for i ∈ num_ghost:ni
+        for j ∈ num_ghost:(jmaxg-num_ghost)
             j_int = num_ghost + j - 1;
             j_cells = (num_ghost-1) + j - 1;
             i_cells = num_ghost + i - 1;

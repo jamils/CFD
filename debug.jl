@@ -9,7 +9,7 @@ function findNaN(ℵ)
     if length(nanloc) == 1 && nanloc[end] == 0
         return println("False")
     else
-        return nanloc
+        return length(nanloc)
     end
 end
 
@@ -24,6 +24,6 @@ function findzero(ℵ)
     if length(zeroloc) == 1 && zeroloc[end] == 1
         return println("False")
     else
-        return zeroloc
+        return length(zeroloc)
     end
 end
